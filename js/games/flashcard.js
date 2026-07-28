@@ -117,9 +117,9 @@ class FlashcardGame {
         if (quality === 5) {
             xpReward = 5;
             // Track flashcard count for achievements
-            let easyCount = parseInt(localStorage.getItem("longlong_achievement_easy_count") || "0");
+            let easyCount = parseInt(localStorage.getItem(`longlong_achievement_easy_count_${app.activeUser}`) || "0");
             easyCount++;
-            localStorage.setItem("longlong_achievement_easy_count", easyCount.toString());
+            localStorage.setItem(`longlong_achievement_easy_count_${app.activeUser}`, easyCount.toString());
             if (easyCount >= 10) {
                 app.unlockAchievement("a5"); // Unlock achievement 5
             }

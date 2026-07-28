@@ -38,22 +38,19 @@ class WritingGame {
                     <div id="writing-canvas" class="writing-canvas-container"></div>
                 </div>
 
-                <div class="writing-controls">
+                <div class="writing-controls" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:15px; width:100%">
                     <button class="btn btn-secondary" id="writing-animate-btn"><i class="fa-solid fa-play"></i> Xem nét mẫu</button>
                     <button class="btn btn-secondary" id="writing-clear-btn"><i class="fa-solid fa-eraser"></i> Xóa bảng</button>
+                    <button class="btn btn-primary" id="writing-next-btn"><i class="fa-solid fa-circle-chevron-right"></i> Tiếp theo</button>
                 </div>
 
-                <div class="word-details-box" style="width:100%; max-width:400px;">
+                <div class="word-details-box" style="width:100%; max-width:400px; margin-top:15px;">
                     <strong>Ví dụ:</strong> ${this.targetWord.example}<br>
                     <span style="font-size:11px; opacity:0.8;">${this.targetWord.example_pinyin} — ${this.targetWord.example_meaning}</span>
                 </div>
 
-                <div id="writing-success-msg" style="display:none; color:var(--success); font-weight:bold; font-size:18px;">
+                <div id="writing-success-msg" style="display:none; color:var(--success); font-weight:bold; font-size:18px; margin-top:10px;">
                     <i class="fa-solid fa-circle-check animate-bounce"></i> Rất tốt! +5 XP
-                </div>
-                
-                <div style="display:flex; justify-content:flex-end; width:100%; max-width:400px;">
-                    <button id="writing-next-btn" class="btn btn-primary" style="display:none;">Tiếp tục <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
             </div>
         `;
@@ -67,6 +64,16 @@ class WritingGame {
             if (this.writerInstance) {
                 this.writerInstance.cancelQuiz();
                 this.writerInstance.quiz();
+            }
+        });
+
+        // Bind next button
+        document.getElementById("writing-next-btn").addEventListener("click", () => {
+            this.currentRound++;
+            if (this.currentRound < this.totalRounds) {
+                this.nextRound();
+            } else {
+                this.showSummary();
             }
         });
     }
@@ -97,28 +104,26 @@ class WritingGame {
 
     handleWritingSuccess() {
         // Show success message
-        document.getElementById("writing-success-msg").style.display = "block";
-        document.getElementById("writing-next-btn").style.display = "inline-flex";
+        const msg = document.getElementById("writing-success-msg");
+        if (msg) msg.style.display = "block";
         
         app.addXP(5);
         app.playAudio(this.targetWord); // Pronounce on success
         
         // Track writing count for achievements
-        let count = parseInt(localStorage.getItem("longlong_writing_count") || "0");
+        let count = parseInt(localStorage.getItem(`longlong_writing_count_${app.activeUser}`) || "0");
         count++;
-        localStorage.setItem("longlong_writing_count", count.toString());
+        localStorage.setItem(`longlong_writing_count_${app.activeUser}`, count.toString());
         if (count >= 5) {
             app.unlockAchievement("a3"); // Unlock achievement 3
         }
 
-        document.getElementById("writing-next-btn").addEventListener("click", () => {
-            this.currentRound++;
-            if (this.currentRound < this.totalRounds) {
-                this.nextRound();
-            } else {
-                this.showSummary();
-            }
-        });
+        // Highlight next button
+        const nextBtn = document.getElementById("writing-next-btn");
+        if (nextBtn) {
+            nextBtn.innerHTML = `Tiếp tục <i class="fa-solid fa-arrow-right"></i>`;
+            nextBtn.classList.add("btn-success");
+        }
     }
 
     showSummary() {

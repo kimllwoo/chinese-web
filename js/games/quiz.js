@@ -130,7 +130,7 @@ class QuizGame {
         });
 
         // Streak tracking
-        let streak = parseInt(localStorage.getItem("longlong_quiz_streak") || "0");
+        let streak = parseInt(localStorage.getItem(`longlong_quiz_streak_${app.activeUser}`) || "0");
 
         if (isCorrect) {
             btnEl.classList.add("correct");
@@ -138,14 +138,14 @@ class QuizGame {
             app.addXP(4);
             
             streak++;
-            localStorage.setItem("longlong_quiz_streak", streak.toString());
+            localStorage.setItem(`longlong_quiz_streak_${app.activeUser}`, streak.toString());
             if (streak >= 10) {
                 app.unlockAchievement("a2"); // Unlock "Chúa tể Pinyin" achievement
             }
         } else {
             btnEl.classList.add("incorrect");
             streak = 0; // Reset streak
-            localStorage.setItem("longlong_quiz_streak", "0");
+            localStorage.setItem(`longlong_quiz_streak_${app.activeUser}`, "0");
 
             // Find and highlight correct option
             const optionsList = document.getElementById("options-list");

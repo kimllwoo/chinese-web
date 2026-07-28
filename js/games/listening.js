@@ -144,9 +144,9 @@ class ListeningGame {
             app.addXP(totalXp);
             
             // Check listening sprint achievements
-            let accumulatedListeningXp = parseInt(localStorage.getItem("longlong_listening_xp") || "0");
+            let accumulatedListeningXp = parseInt(localStorage.getItem(`longlong_listening_xp_${app.activeUser}`) || "0");
             accumulatedListeningXp += totalXp;
-            localStorage.setItem("longlong_listening_xp", accumulatedListeningXp.toString());
+            localStorage.setItem(`longlong_listening_xp_${app.activeUser}`, accumulatedListeningXp.toString());
             if (accumulatedListeningXp >= 50) {
                 app.unlockAchievement("a4"); // Unlock "Chiến thần Listening" achievement
             }

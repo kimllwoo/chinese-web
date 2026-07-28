@@ -313,7 +313,7 @@ class AppManager {
             this.activeGame = new ListeningGame(playground, this.getPracticeWordSession(5));
         } else if (gameType === "writing") {
             titleEl.innerText = "Character Writing";
-            this.activeGame = new WritingGame(playground, this.getPracticeWordSession(3));
+            this.activeGame = new WritingGame(playground, this.getPracticeWordSession(3, w => w.hanzi.length === 1));
         } else if (gameType === "sentence") {
             titleEl.innerText = "Sentence Builder";
             this.activeGame = new SentenceGame(playground, this.getPracticeWordSession(3));
@@ -581,11 +581,17 @@ class AppManager {
     }
 
     // Ratio-based vocabulary session fetcher
-    getPracticeWordSession(count = 10) {
+    getPracticeWordSession(count = 10, filterFn = null) {
         // 1. Filter words by chosen HSK levels
         let available = window.WORDS_DB.filter(w => this.selectedHskLevels.includes(w.hsk));
+        if (filterFn) {
+            available = available.filter(filterFn);
+        }
         if (available.length === 0) {
             available = window.WORDS_DB;
+            if (filterFn) {
+                available = available.filter(filterFn);
+            }
         }
 
         // 2. Classify words into 3 buckets:
