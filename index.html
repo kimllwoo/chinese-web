@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Từ Vựng Tiếng Trung Gamified | LongLong Chinese</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Hanzi Writer for Character Stroke Writing -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Auth Screen (Login / Register) -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container card">
+            <div class="auth-brand">
+                <div class="brand-logo" style="width: 50px; height: 50px; font-size: 28px;">龙</div>
+                <h2>LongLong Chinese</h2>
+                <p>Học tiếng Trung qua game & ôn tập ngắt quãng</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="tab-login" onclick="app.switchAuthTab('login')">Đăng nhập</button>
+                <button class="auth-tab-btn" id="tab-register" onclick="app.switchAuthTab('register')">Đăng ký</button>
+            </div>
+            
+            <form id="auth-form" onsubmit="app.handleAuth(event)" class="add-word-form" style="margin-top:0;">
+                <div class="form-group">
+                    <label for="auth-username">Tên đăng nhập</label>
+                    <div style="position:relative;">
+                        <input type="text" id="auth-username" required placeholder="Nhập tên đăng nhập...">
+                        <i class="fa-solid fa-user" style="position:absolute; right:15px; top:15px; color:var(--text-muted);"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="auth-password">Mật khẩu</label>
+                    <div style="position:relative;">
+                        <input type="password" id="auth-password" required placeholder="Nhập mật khẩu...">
+                        <i class="fa-solid fa-lock" style="position:absolute; right:15px; top:15px; color:var(--text-muted);"></i>
+                    </div>
+                </div>
+                
+                <div id="auth-feedback" style="display:none; color:var(--error); font-size:13px; font-weight:bold; text-align:center; margin-bottom:15px;"></div>
+                
+                <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width:100%; padding:14px; margin-top:10px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display:none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">龙</div>
+                <span class="brand-name">LongLong</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-target="dashboard">
+                    <i class="fa-solid fa-house"></i> <span>Bảng điều khiển</span>
+                </a>
+                <a href="#dictionary" class="nav-item" data-target="dictionary">
+                    <i class="fa-solid fa-book"></i> <span>Từ điển HSK</span>
+                </a>
+                <a href="#leaderboard" class="nav-item" data-target="leaderboard">
+                    <i class="fa-solid fa-trophy"></i> <span>Bảng xếp hạng</span>
+                </a>
+                <a href="#achievements" class="nav-item" data-target="achievements">
+                    <i class="fa-solid fa-medal"></i> <span>Thành tích</span>
+                </a>
+                <a href="#settings" class="nav-item" data-target="settings">
+                    <i class="fa-solid fa-gear"></i> <span>Cấu hình học</span>
+                </a>
+                <a href="#" class="nav-item" onclick="app.logout(event)" style="margin-top: auto; color: var(--error);">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Đăng xuất</span>
+                </a>
+            </nav>
+
+            <div class="user-quick-profile">
+                <div class="user-avatar">
+                    <i class="fa-solid fa-user-ninja"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="profile-name">Cơ trưởng Hán Ngữ</div>
+                    <div class="user-level" id="profile-level">Cấp độ 1</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Status Bar -->
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1 id="current-page-title">Chào mừng trở lại!</h1>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-badge streak" title="Chuỗi ngày học liên tục">
+                        <i class="fa-solid fa-fire animate-fire"></i>
+                        <span id="stat-streak">0</span> ngày
+                    </div>
+                    <div class="stat-badge xp" title="Kinh nghiệm tích lũy">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="stat-xp">0</span> XP
+                    </div>
+                    <div class="stat-badge level" title="Cấp học hiện tại">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>LV. <span id="stat-level">1</span></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="app-view active">
+                <div class="dashboard-grid">
+                    <!-- Progress Card -->
+                    <div class="card card-hero">
+                        <div class="hero-content">
+                            <h2>Tiến trình hôm nay</h2>
+                            <p>Hoàn thành mục tiêu hàng ngày để duy trì streak của bạn!</p>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="daily-progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span id="daily-progress-text">0 / 50 XP</span>
+                                <span>Mục tiêu hàng ngày</span>
+                            </div>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="circle-progress" id="srs-circle">
+                                <div class="circle-inner">
+                                    <span id="srs-due-count" class="due-number">0</span>
+                                    <span class="due-label">Cần ôn</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Games List Card -->
+                    <div class="card card-games">
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:15px;">
+                            <div>
+                                <h3><i class="fa-solid fa-gamepad"></i> Các trò chơi luyện tập</h3>
+                                <span class="subtitle">Luyện trí nhớ qua pinyin, nghĩa và mặt chữ</span>
+                            </div>
+                            <div class="hsk-selector-group" style="display:flex; gap:8px; align-items:center; background:var(--secondary); padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border-color); flex-wrap:wrap;">
+                                <span style="font-size:12px; font-weight:bold; color:var(--text-muted);">Cấp độ ôn:</span>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="1" checked onchange="app.updateSelectedHsk()"> HSK 1</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="2" checked onchange="app.updateSelectedHsk()"> HSK 2</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="3" checked onchange="app.updateSelectedHsk()"> HSK 3</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="4" checked onchange="app.updateSelectedHsk()"> HSK 4</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="5" checked onchange="app.updateSelectedHsk()"> HSK 5</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="6" checked onchange="app.updateSelectedHsk()"> HSK 6</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="7" checked onchange="app.updateSelectedHsk()"> HSK 7</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="8" checked onchange="app.updateSelectedHsk()"> HSK 8</label>
+                                <label style="font-size:11px; font-weight:600; display:flex; align-items:center; gap:3px; cursor:pointer;"><input type="checkbox" class="hsk-cb" value="9" checked onchange="app.updateSelectedHsk()"> HSK 9</label>
+                            </div>
+                        </div>
+                        <div class="games-grid">
+                            <button class="game-btn flashcard" onclick="app.startGame('flashcard')">
+                                <div class="game-icon"><i class="fa-regular fa-clone"></i></div>
+                                <div class="game-meta">
+                                    <h4>Flashcard thông minh</h4>
+                                    <p>Nhớ chữ, pinyin & nghĩa</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn matching" onclick="app.startGame('matching')">
+                                <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+                                <div class="game-meta">
+                                    <h4>Ghép nối thần tốc</h4>
+                                    <p>Nối các cặp Hán - Pinyin - Nghĩa</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn quiz" onclick="app.startGame('quiz')">
+                                <div class="game-icon"><i class="fa-solid fa-circle-question"></i></div>
+                                <div class="game-meta">
+                                    <h4>Trắc nghiệm phản xạ</h4>
+                                    <p>Chọn câu trả lời chính xác</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn listening" onclick="app.startGame('listening')">
+                                <div class="game-icon"><i class="fa-solid fa-volume-high"></i></div>
+                                <div class="game-meta">
+                                    <h4>Luyện nghe phản xạ</h4>
+                                    <p>Nghe âm thanh đoán từ vựng</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn writing" onclick="app.startGame('writing')">
+                                <div class="game-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div class="game-meta">
+                                    <h4>Tập viết chữ Hán</h4>
+                                    <p>Học viết và kiểm tra nét vẽ</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn sentence" onclick="app.startGame('sentence')">
+                                <div class="game-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                                <div class="game-meta">
+                                    <h4>Xây dựng câu</h4>
+                                    <p>Sắp xếp trật tự câu hoàn chỉnh</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn cloze" onclick="app.startGame('cloze')">
+                                <div class="game-icon"><i class="fa-solid fa-square-minus"></i></div>
+                                <div class="game-meta">
+                                    <h4>Điền từ vào câu</h4>
+                                    <p>Thực hành nhớ từ trong ngữ cảnh</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                            <button class="game-btn pinyintyper" onclick="app.startGame('pinyintyper')">
+                                <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
+                                <div class="game-meta">
+                                    <h4>Luyện gõ Pinyin</h4>
+                                    <p>Tập phản xạ và đánh máy Pinyin</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SRS Review Prompt Card -->
+                    <div class="card card-srs">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> Ôn tập ngắt quãng (SRS)</h3>
+                        </div>
+                        <div class="srs-status-box">
+                            <p id="srs-status-msg">Đang tải lịch ôn tập...</p>
+                            <button id="srs-start-btn" class="btn btn-primary" onclick="app.startSRS()">
+                                <i class="fa-solid fa-bolt"></i> Bắt đầu ôn ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game Arena View (Where games run) -->
+            <section id="view-game" class="app-view">
+                <div class="game-container">
+                    <div class="game-header">
+                        <button class="btn-back" onclick="app.exitGame()"><i class="fa-solid fa-arrow-left"></i> Thoát</button>
+                        <h2 id="game-title">Tên Trò Chơi</h2>
+                        <div class="game-score-badge"><span id="game-score">0</span> XP</div>
+                    </div>
+                    
+                    <!-- Dynamic Game Content injected here -->
+                    <div id="game-playground" class="game-playground"></div>
+                </div>
+            </section>
+
+            <!-- Dictionary View -->
+            <section id="view-dictionary" class="app-view">
+                <div class="dictionary-header-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="font-size:20px; font-weight:600;"><i class="fa-solid fa-book-bookmark"></i> Kho từ vựng cá nhân</h3>
+                    <button class="btn btn-primary" onclick="app.openAddWordModal()"><i class="fa-solid fa-plus"></i> Thêm từ vựng mới</button>
+                </div>
+                <div class="dictionary-controls">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="dict-search" placeholder="Tìm kiếm bằng chữ Hán, Pinyin hoặc Nghĩa..." oninput="app.searchDict()">
+                    </div>
+                    <div class="filter-box">
+                        <select id="dict-hsk-filter" onchange="app.searchDict()">
+                            <option value="all">Tất cả cấp độ</option>
+                            <option value="1">HSK 1</option>
+                            <option value="2">HSK 2</option>
+                            <option value="3">HSK 3</option>
+                            <option value="4">HSK 4</option>
+                            <option value="5">HSK 5</option>
+                            <option value="6">HSK 6</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dict-table-container">
+                    <table class="dict-table">
+                        <thead>
+                            <tr>
+                                <th>Chữ Hán</th>
+                                <th>Pinyin</th>
+                                <th>Nghĩa tiếng Việt</th>
+                                <th>Cấp HSK</th>
+                                <th>Bộ thủ</th>
+                                <th>Âm thanh</th>
+                                <th>Tập viết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dict-table-body">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Leaderboard View -->
+            <section id="view-leaderboard" class="app-view">
+                <div class="leaderboard-card">
+                    <div class="leaderboard-header">
+                        <h3><i class="fa-solid fa-trophy"></i> Bảng Xếp Hạng Tuần</h3>
+                        <p class="subtitle">Thi đua tích lũy XP cùng các học viên khác</p>
+                    </div>
+                    <div class="leaderboard-tabs">
+                        <button class="lead-tab active">Tuần này</button>
+                        <button class="lead-tab">Mọi lúc</button>
+                    </div>
+                    <div class="leaderboard-list" id="leaderboard-list-body">
+                        <!-- Injected by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Achievements View -->
+            <section id="view-achievements" class="app-view">
+                <div class="achievements-grid" id="achievements-grid-body">
+                    <!-- Injected by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="view-settings" class="app-view">
+                <div class="card" style="max-width: 600px; margin: 0 auto; background:#ffffff;">
+                    <div class="card-header" style="border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:20px;">
+                        <h3 style="font-size:20px; font-weight:600;"><i class="fa-solid fa-sliders"></i> Cấu hình buổi học</h3>
+                    </div>
+                    <form id="settings-form" onsubmit="app.saveSettings(event)" class="add-word-form" style="margin-top:0;">
+                        <!-- Ratio Configuration -->
+                        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom:20px;">
+                            <h4 style="margin-bottom:12px; font-size:15px; color:var(--primary);"><i class="fa-solid fa-chart-pie"></i> Tỷ lệ phân bổ từ vựng (Tổng phải bằng 100%)</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ratio-new">Từ mới (%)</label>
+                                    <input type="number" id="ratio-new" min="0" max="100" required oninput="app.validateRatioSum()" value="30">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ratio-reviewing">Đang ôn (%)</label>
+                                    <input type="number" id="ratio-reviewing" min="0" max="100" required oninput="app.validateRatioSum()" value="50">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ratio-mastered">Đã thuộc (%)</label>
+                                    <input type="number" id="ratio-mastered" min="0" max="100" required oninput="app.validateRatioSum()" value="20">
+                                </div>
+                            </div>
+                            <div id="ratio-sum-feedback" style="font-weight:bold; font-size:13px; margin-top:10px; color:var(--success);">Tổng cộng: 100% (Hợp lệ)</div>
+                        </div>
+
+                        <!-- HSK Levels in settings info -->
+                        <div>
+                            <h4 style="margin-bottom:8px; font-size:15px; color:var(--primary);"><i class="fa-solid fa-circle-info"></i> Thông tin Cấp độ HSK</h4>
+                            <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+                                Hệ thống hỗ trợ đầy đủ từ **HSK 1 đến HSK 9** (chuẩn HSK 3.0). Các từ vựng mới tự thêm sẽ tuân theo cấp độ HSK bạn thiết lập và tự động tham gia vào vòng lặp ôn tập ngắt quãng (SRS) cũng như các trò chơi theo tỷ lệ cấu hình ở trên.
+                            </p>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px;">
+                            <button type="submit" id="settings-save-btn" class="btn btn-primary"><i class="fa-solid fa-save"></i> Lưu cấu hình</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Stroke Writing Dialog (Used for popup writing inside dictionary) -->
+    <div id="writing-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="app.closeWritingModal()">&times;</span>
+            <h3 id="writing-modal-title">Tập viết chữ</h3>
+            <div class="writing-modal-body">
+                <div class="modal-writing-flex">
+                    <div id="modal-writing-canvas" class="writing-canvas-container"></div>
+                    <div class="modal-writing-info">
+                        <div id="modal-word-details" class="word-details-box"></div>
+                        <div class="writing-controls">
+                            <button class="btn btn-secondary" onclick="app.animateModalWriting()"><i class="fa-solid fa-play"></i> Xem nét mẫu</button>
+                            <button class="btn btn-secondary" onclick="app.clearModalWriting()"><i class="fa-solid fa-eraser"></i> Xóa bảng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Up Toast/Modal -->
+    <div id="levelup-modal" class="modal animate-fade-in">
+        <div class="modal-content levelup-content">
+            <div class="levelup-header">
+                <i class="fa-solid fa-circle-up animate-bounce"></i>
+                <h2>TĂNG CẤP!</h2>
+            </div>
+            <div class="levelup-body">
+                <p>Chúc mừng! Bạn đã đạt cấp độ mới:</p>
+                <div class="levelup-badge" id="levelup-level-num">2</div>
+                <p class="levelup-encouragement">Tiếp tục duy trì phong độ nhé!</p>
+                <button class="btn btn-primary" onclick="app.closeLevelUpModal()">Nhận quà & Tiếp tục</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Word Dialog -->
+    <div id="add-word-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="app.closeAddWordModal()">&times;</span>
+            <h3><i class="fa-solid fa-plus"></i> Thêm từ vựng mới</h3>
+            <form id="add-word-form" onsubmit="app.saveCustomWord(event)" class="add-word-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-hanzi">Chữ Hán <span class="required">*</span></label>
+                        <input type="text" id="new-hanzi" required placeholder="Ví dụ: 你">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-pinyin">Pinyin (có dấu) <span class="required">*</span></label>
+                        <input type="text" id="new-pinyin" required placeholder="Ví dụ: nǐ">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-meaning">Nghĩa tiếng Việt <span class="required">*</span></label>
+                        <input type="text" id="new-meaning" required placeholder="Ví dụ: bạn, anh, chị">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-hsk">Cấp độ HSK</label>
+                        <select id="new-hsk">
+                            <option value="1">HSK 1</option>
+                            <option value="2">HSK 2</option>
+                            <option value="3">HSK 3</option>
+                            <option value="4">HSK 4</option>
+                            <option value="5">HSK 5</option>
+                            <option value="6">HSK 6</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-components">Thành phần bộ thủ (cách nhau bằng dấu phẩy)</label>
+                    <input type="text" id="new-components" placeholder="Ví dụ: 亻, 尔">
+                </div>
+
+                <div class="form-group">
+                    <label for="new-example">Câu ví dụ Hán tự <span class="required">*</span></label>
+                    <input type="text" id="new-example" required placeholder="Ví dụ: 你好吗？">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-example-pinyin">Ví dụ Pinyin <span class="required">*</span></label>
+                        <input type="text" id="new-example-pinyin" required placeholder="Ví dụ: Nǐ hǎo ma?">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-example-meaning">Ví dụ Nghĩa <span class="required">*</span></label>
+                        <input type="text" id="new-example-meaning" required placeholder="Ví dụ: Bạn khỏe không?">
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeAddWordModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Lưu từ vựng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/srs.js"></script>
+    <script src="js/games/flashcard.js"></script>
+    <script src="js/games/matching.js"></script>
+    <script src="js/games/quiz.js"></script>
+    <script src="js/games/listening.js"></script>
+    <script src="js/games/writing.js"></script>
+    <script src="js/games/sentence.js"></script>
+    <script src="js/games/cloze.js"></script>
+    <script src="js/games/pinyintyper.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
